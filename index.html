@@ -283,12 +283,11 @@
   }
   .progress-fill{height:100%;background:var(--gold);}
   .card-stage{
-    height:280px;
+    height:240px;
     display:flex;
     align-items:center;
     justify-content:center;
     margin-bottom:18px;
-    perspective:1200px;
   }
   .card{
     width:100%;
@@ -297,18 +296,9 @@
     cursor:grab;
     touch-action:none;
   }
-  .card-inner{
-    width:100%;
-    height:100%;
-    position:relative;
-    transform-style:preserve-3d;
-    transition:transform 0.45s cubic-bezier(.4,.2,.2,1);
-  }
-  .card.flipped .card-inner{transform:rotateY(180deg);}
   .card-face{
     position:absolute;
     inset:0;
-    backface-visibility:hidden;
     border-radius:14px;
     border:2px solid var(--ink);
     background:var(--paper);
@@ -346,12 +336,6 @@
     letter-spacing:0.5px;
     line-height:1.05;
   }
-  .card-back{transform:rotateY(180deg);}
-  .card-back .word{
-    font-size:26px;
-    font-weight:700;
-  }
-  .tap-hint{font-size:11px;opacity:0.45;margin-top:14px;}
   .front-en{
     font-size:15px;
     opacity:0.5;
@@ -563,7 +547,6 @@ let state = {
   cardsCat: null,
   cardsQueue: [],
   cardsIdx: 0,
-  cardFlipped: false,
   memCat: CATS[0].key,
   memCells: [],
   memFlippedIdx: [],
@@ -798,25 +781,18 @@ function cardsHTML(){
     <div class="session-info"><span>Tarjeta ${state.cardsIdx+1} / ${state.cardsQueue.length}</span><span>${cat.label} <span class="en-inline">${cat.labelEn}</span></span></div>
     <div class="progress-track"><div class="progress-fill" style="width:${(state.cardsIdx/state.cardsQueue.length)*100}%"></div></div>
     <div class="card-stage">
-      <div class="card ${state.cardFlipped?'flipped':''}" id="flipCard">
-        <div class="card-inner">
-          <div class="card-face card-front">
-            <div class="bar" style="background-color:var(--${cat.color})"></div>
-            <div class="cat-label">${cat.label} <span class="en-inline">${cat.labelEn}</span></div>
-            <div class="word">${es}</div>
-            <div class="front-en">${en}</div>
-            <div class="tap-hint">Toca para confirmar <span class="en-inline">/ Tap to confirm</span></div>
-          </div>
-          <div class="card-face card-back">
-            <div class="bar" style="background-color:var(--${cat.color})"></div>
-            <div class="word">${en}</div>
-          </div>
+      <div class="card">
+        <div class="card-face card-front">
+          <div class="bar" style="background-color:var(--${cat.color})"></div>
+          <div class="cat-label">${cat.label} <span class="en-inline">${cat.labelEn}</span></div>
+          <div class="word">${es}</div>
+          <div class="front-en">${en}</div>
         </div>
       </div>
     </div>
     <div class="actions">
-      <button class="btn btn-again" id="btnAgain" ${!state.cardFlipped?'disabled style="opacity:.35"':''}>🔁 <span class="es">Otra vez</span><span class="en">Try again</span></button>
-      <button class="btn btn-know" id="btnKnow" ${!state.cardFlipped?'disabled style="opacity:.35"':''}>✅ <span class="es">Lo sé</span><span class="en">I know it</span></button>
+      <button class="btn btn-again" id="btnAgain">🔁 <span class="es">Otra vez</span><span class="en">Try again</span></button>
+      <button class="btn btn-know" id="btnKnow">✅ <span class="es">Lo sé</span><span class="en">I know it</span></button>
     </div>
   `;
 }
@@ -825,7 +801,6 @@ function bindCards(){
   if(startBtn) startBtn.addEventListener('click', ()=>{
     state.cardsQueue = buildQueue();
     state.cardsIdx = 0;
-    state.cardFlipped = false;
     state.cardsStarted = true;
     renderPanel();
   });
@@ -835,23 +810,17 @@ function bindCards(){
     CATS.forEach((cat,ci)=>{ if(isCatUnlocked(ci)) cat.words.forEach((w,wi)=>pool.push({id:wordId(ci,wi),ci,wi})); });
     pool.sort(()=>Math.random()-0.5);
     state.cardsQueue = pool.slice(0,15);
-    state.cardsIdx=0; state.cardFlipped=false;
+    state.cardsIdx=0;
     renderPanel();
   });
   const newSession = document.getElementById('newSession');
   if(newSession) newSession.addEventListener('click', ()=>{
-    state.cardsQueue = buildQueue(); state.cardsIdx=0; state.cardFlipped=false;
-    renderPanel();
-  });
-  const card = document.getElementById('flipCard');
-  if(card) card.addEventListener('click', ()=>{
-    state.cardFlipped = !state.cardFlipped;
+    state.cardsQueue = buildQueue(); state.cardsIdx=0;
     renderPanel();
   });
   const again = document.getElementById('btnAgain');
   if(again) again.addEventListener('click', (e)=>{
     e.stopPropagation();
-    if(!state.cardFlipped) return;
     const item = state.cardsQueue[state.cardsIdx];
     review(item.id, false);
     advanceCard();
@@ -859,7 +828,6 @@ function bindCards(){
   const know = document.getElementById('btnKnow');
   if(know) know.addEventListener('click', (e)=>{
     e.stopPropagation();
-    if(!state.cardFlipped) return;
     const item = state.cardsQueue[state.cardsIdx];
     review(item.id, true);
     advanceCard();
@@ -867,7 +835,6 @@ function bindCards(){
 }
 function advanceCard(){
   state.cardsIdx++;
-  state.cardFlipped=false;
   render();
 }
 
@@ -1100,8 +1067,8 @@ function bindListen(){
 
 /* ---------- DRAG SWIPE FOR FLASHCARDS ---------- */
 document.addEventListener('pointerdown', (e)=>{
-  const card = e.target.closest('#flipCard');
-  if(!card || !state.cardFlipped) return;
+  const card = e.target.closest('.card-stage .card');
+  if(!card || !state.cardsQueue || state.cardsIdx >= state.cardsQueue.length) return;
   let startX = e.clientX;
   let dragging = true;
   const onMove = (ev)=>{
