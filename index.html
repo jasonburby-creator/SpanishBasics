@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="description" content="Ruta de Palabras — a bilingual Spanish travel vocabulary game with flashcards, a memory match, and a listening sprint.">
+<title>Ruta de Palabras — Spanish Travel Vocabulary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Caveat:wght@600;700&family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF3E1;
+    --paper2:#F0E2C2;
+    --ink:#241A12;
+    --gold:#E3A93A;
+    --azulejo:#1F5C8B;
+    --clavel:#C13B3B;
+    --oliva:#5F7E3D;
+    --line:rgba(36,26,18,0.18);
+    --shadow:rgba(36,26,18,0.25);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background-color:var(--paper);
+    background-image:
+      repeating-linear-gradient(45deg, rgba(31,92,139,0.055) 0 2px, transparent 2px 28px),
+      repeating-linear-gradient(-45deg, rgba(31,92,139,0.055) 0 2px, transparent 2px 28px),
+      radial-gradient(circle at 15% 6%, rgba(227,169,58,0.22), transparent 38%),
+      radial-gradient(circle at 88% 94%, rgba(31,92,139,0.16), transparent 42%);
+    font-family:'Work Sans', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    padding:18px 16px 40px;
+    position:relative;
+  }
+  .bunting-string{
+    height:2px;
+    background:var(--ink);
+    opacity:0.35;
+    margin:0 6px 0;
+  }
+  .bunting{
+    display:flex;
+    justify-content:space-between;
+    padding:0 4px;
+    margin-bottom:10px;
+  }
+  .flag{
+    width:0;height:0;
+    border-left:8px solid transparent;
+    border-right:8px solid transparent;
+    border-top:13px solid var(--c);
+    opacity:0.9;
+  }
+  .topbar{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    margin-bottom:2px;
+    margin-top:6px;
+  }
+  .title{
+    font-family:'Bebas Neue', sans-serif;
+    font-size:36px;
+    letter-spacing:1.5px;
+    color:var(--ink);
+    line-height:1;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .title span{color:var(--clavel);}
+  .subtitle{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    color:var(--ink);
+    opacity:0.55;
+    margin-top:4px;
+    margin-bottom:14px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    text-align:center;
+  }
+  .subtitle .sub-en{
+    font-size:10px;
+    letter-spacing:0.8px;
+    text-transform:none;
+    opacity:0.75;
+    font-style:italic;
+  }
+  .en-inline{
+    font-size:0.78em;
+    opacity:0.55;
+    font-weight:500;
+    text-transform:none;
+    letter-spacing:0.2px;
+  }
+  .en-block{
+    display:block;
+    font-size:0.82em;
+    opacity:0.6;
+    margin-top:6px;
+    font-style:italic;
+  }
+  .stop-en{
+    display:block;
+    font-size:8px;
+    opacity:0.6;
+    font-style:italic;
+    margin-top:1px;
+  }
+  .flourish{
+    font-family:'Caveat', cursive;
+    font-weight:700;
+  }
+
+  /* Journey strip */
+  .journey{
+    background:var(--paper2);
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:16px 14px 14px;
+    margin-bottom:18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .journey::before{
+    content:'';
+    position:absolute;
+    top:-30px;left:-30px;right:-30px;
+    height:60px;
+    background:repeating-linear-gradient(90deg, var(--gold) 0 18px, var(--clavel) 18px 36px, var(--azulejo) 36px 54px, var(--oliva) 54px 72px);
+    opacity:0.06;
+    transform:rotate(-3deg);
+  }
+  .journey-label{
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:1.3px;
+    opacity:0.6;
+    margin-bottom:6px;
+    position:relative;
+  }
+  .fan-wrap{
+    display:flex;
+    justify-content:center;
+    margin:2px 0 4px;
+    filter:drop-shadow(0 3px 3px var(--shadow));
+  }
+  .journey-pct{
+    text-align:center;
+    font-size:13px;
+    font-weight:700;
+    color:var(--oliva);
+    margin-top:2px;
+    margin-bottom:10px;
+  }
+  .stops-row{
+    display:flex;
+    justify-content:space-around;
+    border-top:1px dashed var(--line);
+    padding-top:10px;
+  }
+  .stop{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    font-size:9px;
+    text-transform:uppercase;
+    letter-spacing:0.7px;
+    opacity:0.45;
+    text-align:center;
+  }
+  .stop.lit{opacity:1;}
+  .stop-dot{
+    width:9px;height:9px;border-radius:50%;
+    background:var(--paper);border:2px solid var(--ink);
+    margin-bottom:4px;
+  }
+  .stop.lit .stop-dot{background:var(--oliva);border-color:var(--oliva);}
+
+  /* Tabs */
+  .tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:16px;
+  }
+  .tab{
+    flex:1;
+    padding:9px 4px 8px;
+    text-align:center;
+    border:2px solid var(--ink);
+    border-radius:8px;
+    background:var(--paper);
+    cursor:pointer;
+    user-select:none;
+    transition:transform 0.12s ease;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    line-height:1.15;
+  }
+  .tab .es{
+    font-family:'Bebas Neue', sans-serif;
+    font-size:16px;
+    letter-spacing:0.8px;
+  }
+  .tab .en{
+    font-size:9px;
+    text-transform:uppercase;
+    letter-spacing:0.8px;
+    opacity:0.55;
+    font-weight:600;
+  }
+  .tab.active .en{opacity:0.75;}
+  .tab:nth-child(1){transform:rotate(-1.2deg);}
+  .tab:nth-child(2){transform:rotate(0.8deg);}
+  .tab:nth-child(3){transform:rotate(-0.6deg);}
+  .tab.active{
+    background:var(--ink);
+    color:var(--paper);
+    transform:rotate(0deg) scale(1.03);
+  }
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  /* Category chips */
+  .chips{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding-bottom:6px;
+    margin-bottom:16px;
+  }
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    flex:0 0 auto;
+    padding:7px 13px 6px;
+    border-radius:14px;
+    border:1.5px solid var(--ink);
+    background:var(--paper);
+    cursor:pointer;
+    white-space:nowrap;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    line-height:1.25;
+  }
+  .chip-es{font-size:12px;font-weight:700;}
+  .chip-en{font-size:9px;opacity:0.55;font-weight:500;}
+  .chip.active .chip-en{opacity:0.75;}
+  .chip.active{background:var(--ink);color:var(--paper);}
+  .chip.locked{opacity:0.4;cursor:not-allowed;}
+
+  /* Flashcards */
+  .session-info{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    opacity:0.65;
+    margin-bottom:10px;
+  }
+  .progress-track{
+    height:5px;
+    background:var(--paper2);
+    border-radius:4px;
+    overflow:hidden;
+    margin-bottom:18px;
+  }
+  .progress-fill{height:100%;background:var(--gold);}
+  .card-stage{
+    height:280px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:18px;
+    perspective:1200px;
+  }
+  .card{
+    width:100%;
+    height:100%;
+    position:relative;
+    cursor:grab;
+    touch-action:none;
+  }
+  .card-inner{
+    width:100%;
+    height:100%;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform 0.45s cubic-bezier(.4,.2,.2,1);
+  }
+  .card.flipped .card-inner{transform:rotateY(180deg);}
+  .card-face{
+    position:absolute;
+    inset:0;
+    backface-visibility:hidden;
+    border-radius:14px;
+    border:2px solid var(--ink);
+    background:var(--paper);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    text-align:center;
+    box-shadow:6px 6px 0 var(--shadow);
+  }
+  .card-face .bar{
+    position:absolute;top:0;left:0;right:0;height:10px;
+    border-radius:12px 12px 0 0;
+    background-image:linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0) 60%);
+    background-color:inherit;
+  }
+  .card-face::after{
+    content:'';
+    position:absolute;
+    top:8px;right:8px;
+    width:10px;height:10px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.9), var(--gold) 65%);
+    box-shadow:0 0 0 1.5px var(--ink);
+    opacity:0.5;
+  }
+  .card-face .cat-label{
+    position:absolute;top:18px;left:18px;
+    font-size:10px;text-transform:uppercase;letter-spacing:1.2px;opacity:0.5;
+  }
+  .card-front .word{
+    font-family:'Bebas Neue', sans-serif;
+    font-size:40px;
+    letter-spacing:0.5px;
+    line-height:1.05;
+  }
+  .card-back{transform:rotateY(180deg);}
+  .card-back .word{
+    font-size:26px;
+    font-weight:700;
+  }
+  .tap-hint{font-size:11px;opacity:0.45;margin-top:14px;}
+  .actions{display:flex;gap:12px;}
+  .btn{
+    flex:1;
+    padding:12px 8px;
+    border-radius:10px;
+    border:2px solid var(--ink);
+    font-family:'Work Sans';
+    cursor:pointer;
+    background:var(--paper);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:1px;
+    line-height:1.2;
+  }
+  .btn .es{font-weight:700;font-size:14px;}
+  .btn .en{font-size:10px;opacity:0.7;font-weight:500;}
+  .btn-again{background:var(--clavel);color:var(--paper);border-color:var(--clavel);}
+  .btn-know{background:var(--oliva);color:var(--paper);border-color:var(--oliva);}
+  .empty-state{
+    text-align:center;
+    padding:50px 20px;
+    border:2px dashed var(--line);
+    border-radius:12px;
+  }
+  .empty-state .big{font-size:38px;margin-bottom:8px;}
+  .link-btn{
+    background:none;border:none;text-decoration:underline;
+    font-size:13px;color:var(--azulejo);cursor:pointer;margin-top:10px;
+  }
+
+  /* Memory */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .cell{
+    aspect-ratio:1/1.1;
+    border-radius:8px;
+    border:2px solid var(--ink);
+    background:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    font-size:11px;
+    font-weight:700;
+    padding:6px;
+    cursor:pointer;
+    color:var(--paper);
+  }
+  .cell.flipped{background:var(--paper);color:var(--ink);}
+  .cell.matched{background:var(--oliva);color:var(--paper);border-color:var(--oliva);cursor:default;}
+  .cell .qmark{font-family:'Bebas Neue';font-size:22px;}
+  .win-banner{
+    text-align:center;
+    padding:30px 16px;
+    background:var(--oliva);
+    color:var(--paper);
+    border-radius:12px;
+    margin-bottom:14px;
+  }
+  .win-banner .big{font-size:30px;font-family:'Bebas Neue';letter-spacing:1px;}
+
+  /* Listening */
+  .score-row{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .score-box{text-align:center;flex:1;}
+  .score-box .num{font-family:'Bebas Neue';font-size:26px;}
+  .score-box .lbl{font-size:9px;text-transform:uppercase;letter-spacing:1px;opacity:0.55;}
+  .timer-bar{
+    height:6px;background:var(--paper2);border-radius:4px;overflow:hidden;margin-bottom:16px;
+  }
+  .timer-fill{height:100%;background:var(--clavel);width:100%;}
+  .word-prompt{
+    text-align:center;
+    padding:30px 16px;
+    border:2px solid var(--ink);
+    border-radius:14px;
+    margin-bottom:16px;
+    box-shadow:6px 6px 0 var(--shadow);
+    background:var(--paper);
+  }
+  .speaker{
+    width:56px;height:56px;border-radius:50%;
+    background:var(--azulejo);color:var(--paper);
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;margin:0 auto 10px;cursor:pointer;border:none;
+  }
+  .word-prompt .es{font-size:12px;opacity:0.5;text-transform:uppercase;letter-spacing:1px;}
+  .options{
+    display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  }
+  .opt{
+    padding:16px 8px;border-radius:10px;border:2px solid var(--ink);
+    background:var(--paper);font-weight:600;font-size:13.5px;cursor:pointer;text-align:center;
+  }
+  .opt.correct{background:var(--oliva);color:var(--paper);border-color:var(--oliva);}
+  .opt.wrong{background:var(--clavel);color:var(--paper);border-color:var(--clavel);}
+  .start-row{text-align:center;padding:30px 0;}
+  .big-btn{
+    padding:14px 30px 12px;border-radius:10px;border:2px solid var(--ink);
+    background:var(--gold);cursor:pointer;
+    display:inline-flex;flex-direction:column;align-items:center;line-height:1.15;
+  }
+  .big-btn .es{font-family:'Bebas Neue';font-size:20px;letter-spacing:1px;}
+  .big-btn .en{font-size:10px;opacity:0.65;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;}
+  .reset-row{text-align:center;margin-top:30px;}
+  .reset-row button{
+    background:none;border:none;font-size:11px;opacity:0.4;text-decoration:underline;cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div id="app">Cargando…</div>
+
+<script>
+/* ---------- DATA ---------- */
+const CATS = [
+  {key:'saludos', label:'Saludos', labelEn:'Greetings', color:'gold', words:[
+    ['Hola','Hello'],['Buenos días','Good morning'],['Buenas tardes','Good afternoon'],
+    ['Buenas noches','Good evening / night'],['Por favor','Please'],['Gracias','Thank you'],
+    ['De nada','You\'re welcome'],['Perdón','Excuse me / sorry'],['Sí','Yes'],['No','No'],
+    ['Adiós','Goodbye'],['Lo siento','I\'m sorry']
+  ]},
+  {key:'preguntas', label:'Preguntas', labelEn:'Questions', color:'oliva', words:[
+    ['¿Dónde?','Where?'],['¿Cuándo?','When?'],['¿Qué?','What?'],['¿Cuánto?','How much?'],
+    ['¿Cuántos?','How many?'],['¿Quién?','Who?'],['¿Por qué?','Why?'],['¿Cómo?','How?']
+  ]},
+  {key:'verbos', label:'Verbos', labelEn:'Verbs', color:'gold', words:[
+    ['Quiero','I want'],['Necesito','I need'],['Tengo','I have'],['Soy','I am (permanent)'],
+    ['Estoy','I am (temporary/location)'],['Voy','I go'],['Puedo','I can'],['Hablo','I speak'],
+    ['Entiendo','I understand'],['Cuesta','It costs'],['Hay','There is / are'],
+    ['Busco','I\'m looking for'],['Me gusta','I like'],['Deme','Give me'],['Me llamo','My name is']
+  ]},
+  {key:'comer', label:'Comer', labelEn:'Eating', color:'azulejo', words:[
+    ['La mesa','The table'],['La carta','The menu'],['La cuenta','The bill'],['El agua','Water'],
+    ['El vino','Wine'],['La cerveza','Beer'],['El café','Coffee'],['El pan','Bread'],
+    ['El desayuno','Breakfast'],['El almuerzo','Lunch'],['La cena','Dinner'],['La propina','Tip'],
+    ['¿Tiene...?','Do you have...?'],['Para llevar','To go'],['Para aquí','For here'],
+    ['Sin gluten','Without gluten'],['Vegetariano','Vegetarian'],['Delicioso','Delicious'],
+    ['Frío','Cold'],['Caliente','Hot'],['El cuchillo','Knife'],['El tenedor','Fork'],
+    ['La cuchara','Spoon'],['La servilleta','Napkin'],['Las tapas','Small shared plates']
+  ]},
+  {key:'transporte', label:'Transporte', labelEn:'Transit', color:'oliva', words:[
+    ['La estación','The station'],['El tren','The train'],['El autobús','The bus'],
+    ['El taxi','The taxi'],['El aeropuerto','The airport'],['El billete','The ticket'],
+    ['La salida','The exit'],['La entrada','The entrance'],['Izquierda','Left'],
+    ['Derecha','Right'],['Derecho','Straight ahead'],['Cerca','Near'],['Lejos','Far'],
+    ['Aquí','Here'],['Allí','There'],['La calle','The street'],['La parada','The stop'],
+    ['El andén','The platform'],['Ida y vuelta','Round trip'],['Solo ida','One way'],
+    ['El metro','The subway'],['El coche','The car'],['Despacio','Slowly'],
+    ['¿A qué hora sale?','What time does it leave?'],['¿Cómo llego a...?','How do I get to...?']
+  ]},
+  {key:'alojamiento', label:'Alojamiento', labelEn:'Lodging', color:'gold', words:[
+    ['El hotel','The hotel'],['La habitación','The room'],['La reserva','The reservation'],
+    ['La llave','The key'],['El baño','The bathroom'],['La toalla','The towel'],
+    ['La almohada','The pillow'],['El aire acondicionado','Air conditioning'],
+    ['El wifi','The wifi'],['La contraseña','The password'],['La recepción','Front desk'],
+    ['El equipaje','The luggage'],['La maleta','The suitcase'],['El check-in','Check-in'],
+    ['El check-out','Check-out'],['Limpio','Clean'],['Sucio','Dirty'],['El ascensor','Elevator'],
+    ['No funciona','It\'s not working'],['El piso','The floor']
+  ]},
+  {key:'compras', label:'Compras', labelEn:'Shopping', color:'azulejo', words:[
+    ['¿Cuánto cuesta?','How much does it cost?'],['Caro','Expensive'],['Barato','Cheap'],
+    ['La tarjeta','The card'],['El efectivo','Cash'],['El cambio','Change'],['La talla','Size'],
+    ['El descuento','Discount'],['Abierto','Open'],['Cerrado','Closed']
+  ]},
+  {key:'numeros', label:'Números', labelEn:'Numbers', color:'azulejo', words:[
+    ['Uno','One'],['Dos','Two'],['Tres','Three'],['Cuatro','Four'],['Cinco','Five'],
+    ['Seis','Six'],['Siete','Seven'],['Ocho','Eight'],['Nueve','Nine'],['Diez','Ten'],
+    ['Once','Eleven'],['Doce','Twelve'],['Veinte','Twenty'],['Treinta','Thirty'],
+    ['Cuarenta','Forty'],['Cincuenta','Fifty'],['Cien','One hundred'],['Mil','One thousand'],
+    ['Primero','First']
+  ]},
+  {key:'emergencias', label:'Emergencias', labelEn:'Emergencies', color:'clavel', words:[
+    ['¡Ayuda!','Help!'],['El hospital','The hospital'],['La farmacia','The pharmacy'],
+    ['El médico','The doctor'],['Me duele','It hurts'],['La policía','The police'],
+    ['El seguro','Insurance'],['La emergencia','The emergency'],['El pasaporte','Passport'],
+    ['Perdido','Lost'],['Robado','Stolen'],['Alergia','Allergy'],['La receta','Prescription'],
+    ['La farmacia de guardia','24-hour pharmacy'],['Llame a un médico','Call a doctor'],
+    ['Necesito ayuda','I need help'],['El accidente','The accident'],['El fuego','Fire'],
+    ['La ambulancia','The ambulance'],['No puedo respirar','I can\'t breathe']
+  ]}
+];
+
+const ROUTE_STOPS = [
+  {es:'Novato', en:'Beginner'},
+  {es:'Viajero', en:'Traveler'},
+  {es:'Casi local', en:'Almost local'}
+];
+
+/* ---------- STATE ---------- */
+let state = {
+  progress: {},   // wordId -> {box, last}
+  stats: { sprintBest:0, sprintScore:0 },
+  tab: 'cards',
+  cardsCat: null,
+  cardsQueue: [],
+  cardsIdx: 0,
+  cardFlipped: false,
+  memCat: CATS[0].key,
+  memCells: [],
+  memFlippedIdx: [],
+  memLock: false,
+  memWon: false,
+  sprintCat: 'mix',
+  sprintRunning: false,
+  sprintQ: null,
+  sprintScore: 0,
+  sprintStreak: 0,
+  sprintTimer: null,
+  sprintFeedback: null
+};
+
+function wordId(catIdx, wIdx){ return catIdx+'_'+wIdx; }
+
+/* ---------- STORAGE ---------- */
+function loadAll(){
+  try{
+    const raw = localStorage.getItem('rdp_progress');
+    state.progress = raw ? JSON.parse(raw) : {};
+  }catch(e){ state.progress = {}; }
+  try{
+    const raw2 = localStorage.getItem('rdp_stats');
+    state.stats = raw2 ? JSON.parse(raw2) : {sprintBest:0,sprintScore:0};
+  }catch(e){ state.stats = {sprintBest:0,sprintScore:0}; }
+  return Promise.resolve();
+}
+let saveTimer=null;
+function persist(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    try{ localStorage.setItem('rdp_progress', JSON.stringify(state.progress)); }catch(e){}
+    try{ localStorage.setItem('rdp_stats', JSON.stringify(state.stats)); }catch(e){}
+  }, 250);
+}
+
+/* ---------- PROGRESS LOGIC ---------- */
+const INTERVALS = [0,0,1,3,7,14]; // index by box 0..5
+function getBox(id){ return (state.progress[id] && state.progress[id].box) || 0; }
+function isDue(id){
+  const p = state.progress[id];
+  if(!p) return true;
+  const days = INTERVALS[p.box] || 0;
+  const last = new Date(p.last);
+  const due = new Date(last); due.setDate(due.getDate()+days);
+  return new Date() >= due;
+}
+function review(id, correct){
+  const cur = getBox(id);
+  const box = correct ? Math.min(cur+1,5) : 1;
+  state.progress[id] = { box, last:new Date().toISOString() };
+  persist();
+}
+
+function catMasteryFraction(catIdx){
+  const cat = CATS[catIdx];
+  let m=0;
+  cat.words.forEach((w,i)=>{ if(getBox(wordId(catIdx,i))>=3) m++; });
+  return m/cat.words.length;
+}
+function isCatUnlocked(catIdx){
+  if(catIdx===0) return true;
+  if(!isCatUnlocked(catIdx-1)) return false;
+  return catMasteryFraction(catIdx-1) >= 0.6;
+}
+function overallMastery(){
+  let total=0, mastered=0;
+  CATS.forEach((cat,ci)=>{
+    cat.words.forEach((w,wi)=>{
+      total++;
+      if(getBox(wordId(ci,wi))>=3) mastered++;
+    });
+  });
+  return Math.round((mastered/total)*100);
+}
+
+/* ---------- RENDER SHELL ---------- */
+function render(){
+  const pct = overallMastery();
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    ${buntingHTML()}
+    <div class="topbar">
+      <div class="title">${fanIconSVG()} RUTA DE <span>PALABRAS</span></div>
+    </div>
+    <div class="subtitle">Tu español para viajar por España<span class="sub-en">Your Spanish for traveling around Spain</span></div>
+    ${journeyHTML(pct)}
+    <div class="tabs">
+      <div class="tab ${state.tab==='cards'?'active':''}" data-tab="cards"><span class="es">Tarjetas</span><span class="en">Flashcards</span></div>
+      <div class="tab ${state.tab==='memory'?'active':''}" data-tab="memory"><span class="es">Memoria</span><span class="en">Memory</span></div>
+      <div class="tab ${state.tab==='listen'?'active':''}" data-tab="listen"><span class="es">Escucha</span><span class="en">Listen</span></div>
+    </div>
+    <div id="panel"></div>
+    <div class="reset-row"><button id="resetBtn">Reiniciar progreso <span class="en-inline">/ Reset progress</span></button></div>
+  `;
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click', ()=>{ state.tab=t.dataset.tab; render(); });
+  });
+  document.getElementById('resetBtn').addEventListener('click', async ()=>{
+    if(confirm('¿Borrar todo tu progreso? Esto no se puede deshacer.')){
+      state.progress={}; state.stats={sprintBest:0,sprintScore:0};
+      persist();
+      render();
+    }
+  });
+  renderPanel();
+}
+
+function journeyHTML(pct){
+  let stopsHtml='';
+  ROUTE_STOPS.forEach((stop,i)=>{
+    const pos = (i/(ROUTE_STOPS.length-1))*100;
+    const lit = pct >= pos;
+    stopsHtml += `<div class="stop ${lit?'lit':''}"><span class="stop-dot"></span>${stop.es}<span class="stop-en">${stop.en}</span></div>`;
+  });
+  return `
+    <div class="journey">
+      <div class="journey-label">Tu nivel <span class="en-inline">/ Your level</span></div>
+      <div class="fan-wrap">${fanSVG(pct)}</div>
+      <div class="journey-pct">${pct}% dominado <span class="en-inline">/ mastered</span></div>
+      <div class="stops-row">${stopsHtml}</div>
+    </div>
+  `;
+}
+function fanSVG(pct){
+  // A folding hand-fan (abanico) that "opens" rib by rib as mastery grows.
+  const N = 12;
+  const cx=110, cy=112, rOuter=96, rInner=15;
+  const filledCount = Math.round((pct/100)*N);
+  const colors = ['var(--gold)','var(--clavel)','var(--azulejo)','var(--oliva)'];
+  const toRad = d => d*Math.PI/180;
+  let wedges='';
+  for(let i=0;i<N;i++){
+    const a0 = 180 - (i*180/N);
+    const a1 = 180 - ((i+1)*180/N);
+    const filled = i < filledCount;
+    const color = filled ? colors[i%colors.length] : 'var(--paper)';
+    const x0 = cx + rOuter*Math.cos(toRad(a0)), y0 = cy - rOuter*Math.sin(toRad(a0));
+    const x1 = cx + rOuter*Math.cos(toRad(a1)), y1 = cy - rOuter*Math.sin(toRad(a1));
+    const ix0 = cx + rInner*Math.cos(toRad(a0)), iy0 = cy - rInner*Math.sin(toRad(a0));
+    const ix1 = cx + rInner*Math.cos(toRad(a1)), iy1 = cy - rInner*Math.sin(toRad(a1));
+    wedges += `<path d="M ${ix0.toFixed(1)} ${iy0.toFixed(1)} L ${x0.toFixed(1)} ${y0.toFixed(1)} L ${x1.toFixed(1)} ${y1.toFixed(1)} L ${ix1.toFixed(1)} ${iy1.toFixed(1)} Z" fill="${color}" stroke="var(--ink)" stroke-width="1.1" opacity="${filled?0.95:0.5}"/>`;
+  }
+  return `<svg viewBox="0 0 220 124" width="220" height="124">
+    ${wedges}
+    <path d="M 14 ${cy} A ${rInner} ${rInner} 0 0 1 206 ${cy}" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity="0.5"/>
+    <circle cx="${cx}" cy="${cy}" r="${rInner-4}" fill="var(--ink)"/>
+    <circle cx="${cx}" cy="${cy}" r="${rInner-7}" fill="var(--gold)"/>
+  </svg>`;
+}
+function fanIconSVG(){
+  return `<svg viewBox="0 0 24 24" width="26" height="26" style="vertical-align:-5px">
+    <path d="M3 21 Q3 8 8 3" fill="none" stroke="var(--clavel)" stroke-width="1.4"/>
+    <path d="M3 21 Q9 9 12 3" fill="none" stroke="var(--gold)" stroke-width="1.4"/>
+    <path d="M3 21 Q14 12 17 4" fill="none" stroke="var(--azulejo)" stroke-width="1.4"/>
+    <path d="M3 21 Q18 16 21 9" fill="none" stroke="var(--oliva)" stroke-width="1.4"/>
+    <circle cx="3" cy="21" r="2" fill="var(--ink)"/>
+  </svg>`;
+}
+function buntingHTML(){
+  const colors = ['var(--clavel)','var(--gold)','var(--azulejo)','var(--oliva)'];
+  let flags='';
+  for(let i=0;i<14;i++){
+    flags += `<div class="flag" style="--c:${colors[i%colors.length]}"></div>`;
+  }
+  return `<div class="bunting-string"></div><div class="bunting">${flags}</div>`;
+}
+
+function renderPanel(){
+  const panel = document.getElementById('panel');
+  if(state.tab==='cards'){ panel.innerHTML = cardsHTML(); bindCards(); }
+  else if(state.tab==='memory'){ panel.innerHTML = memoryHTML(); bindMemory(); }
+  else { panel.innerHTML = listenHTML(); bindListen(); }
+}
+
+function chipsHTML(activeCat, onAttr){
+  return `<div class="chips">` + CATS.map((c,i)=>{
+    const unlocked = isCatUnlocked(i);
+    const active = activeCat===c.key;
+    const lock = unlocked ? '' : '🔒 ';
+    return `<div class="chip ${active?'active':''} ${!unlocked?'locked':''}" data-${onAttr}="${c.key}" data-idx="${i}">
+      <span class="chip-es">${lock}${c.label}</span><span class="chip-en">${c.labelEn}</span></div>`;
+  }).join('') + `</div>`;
+}
+
+/* ---------- FLASHCARDS ---------- */
+function buildQueue(){
+  let pool = [];
+  CATS.forEach((cat,ci)=>{
+    if(!isCatUnlocked(ci)) return;
+    cat.words.forEach((w,wi)=>{
+      const id = wordId(ci,wi);
+      if(isDue(id)) pool.push({id, ci, wi});
+    });
+  });
+  pool.sort(()=>Math.random()-0.5);
+  return pool.slice(0,15);
+}
+function cardsHTML(){
+  if(!state.cardsQueue || state.cardsStarted!==true){
+    return `
+      <div class="empty-state">
+        <div class="big">🃏</div>
+        <p>Repasa las palabras que te tocan hoy — empezamos por lo básico y vamos sumando categorías a medida que avances.
+        <span class="en-block">Review today's words — we start with the basics and add categories as you go.</span></p>
+        <button class="big-btn" id="startSession"><span class="es">Empezar repaso</span><span class="en">Start review</span></button>
+      </div>`;
+  }
+  if(state.cardsQueue.length===0){
+    return `
+      <div class="empty-state">
+        <div class="big">☀️</div>
+        <p>¡Ya repasaste todo lo que tocaba por hoy! Vuelve mañana, o practica igual si quieres.
+        <span class="en-block">You've reviewed everything due today! Come back tomorrow, or practice anyway.</span></p>
+        <button class="link-btn" id="practiceAnyway">Practicar de todos modos <span class="en-inline">/ Practice anyway</span></button>
+      </div>`;
+  }
+  if(state.cardsIdx >= state.cardsQueue.length){
+    return `
+      <div class="empty-state">
+        <div class="big">🎉</div>
+        <p>Sesión completa — ${state.cardsQueue.length} tarjetas repasadas.
+        <span class="en-block">Session complete — ${state.cardsQueue.length} cards reviewed.</span></p>
+        <button class="big-btn" id="newSession"><span class="es">Otra ronda</span><span class="en">Another round</span></button>
+      </div>`;
+  }
+  const item = state.cardsQueue[state.cardsIdx];
+  const cat = CATS[item.ci];
+  const [es,en] = cat.words[item.wi];
+  return `
+    <div class="session-info"><span>Tarjeta ${state.cardsIdx+1} / ${state.cardsQueue.length}</span><span>${cat.label} <span class="en-inline">${cat.labelEn}</span></span></div>
+    <div class="progress-track"><div class="progress-fill" style="width:${(state.cardsIdx/state.cardsQueue.length)*100}%"></div></div>
+    <div class="card-stage">
+      <div class="card ${state.cardFlipped?'flipped':''}" id="flipCard">
+        <div class="card-inner">
+          <div class="card-face card-front">
+            <div class="bar" style="background-color:var(--${cat.color})"></div>
+            <div class="cat-label">${cat.label} <span class="en-inline">${cat.labelEn}</span></div>
+            <div class="word">${es}</div>
+            <div class="tap-hint">Toca para ver el significado <span class="en-inline">/ Tap to reveal meaning</span></div>
+          </div>
+          <div class="card-face card-back">
+            <div class="bar" style="background-color:var(--${cat.color})"></div>
+            <div class="word">${en}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-again" id="btnAgain" ${!state.cardFlipped?'disabled style="opacity:.35"':''}>🔁 <span class="es">Otra vez</span><span class="en">Try again</span></button>
+      <button class="btn btn-know" id="btnKnow" ${!state.cardFlipped?'disabled style="opacity:.35"':''}>✅ <span class="es">Lo sé</span><span class="en">I know it</span></button>
+    </div>
+  `;
+}
+function bindCards(){
+  const startBtn = document.getElementById('startSession');
+  if(startBtn) startBtn.addEventListener('click', ()=>{
+    state.cardsQueue = buildQueue();
+    state.cardsIdx = 0;
+    state.cardFlipped = false;
+    state.cardsStarted = true;
+    renderPanel();
+  });
+  const practiceAnyway = document.getElementById('practiceAnyway');
+  if(practiceAnyway) practiceAnyway.addEventListener('click', ()=>{
+    let pool=[];
+    CATS.forEach((cat,ci)=>{ if(isCatUnlocked(ci)) cat.words.forEach((w,wi)=>pool.push({id:wordId(ci,wi),ci,wi})); });
+    pool.sort(()=>Math.random()-0.5);
+    state.cardsQueue = pool.slice(0,15);
+    state.cardsIdx=0; state.cardFlipped=false;
+    renderPanel();
+  });
+  const newSession = document.getElementById('newSession');
+  if(newSession) newSession.addEventListener('click', ()=>{
+    state.cardsQueue = buildQueue(); state.cardsIdx=0; state.cardFlipped=false;
+    renderPanel();
+  });
+  const card = document.getElementById('flipCard');
+  if(card) card.addEventListener('click', ()=>{
+    state.cardFlipped = !state.cardFlipped;
+    renderPanel();
+  });
+  const again = document.getElementById('btnAgain');
+  if(again) again.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    if(!state.cardFlipped) return;
+    const item = state.cardsQueue[state.cardsIdx];
+    review(item.id, false);
+    advanceCard();
+  });
+  const know = document.getElementById('btnKnow');
+  if(know) know.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    if(!state.cardFlipped) return;
+    const item = state.cardsQueue[state.cardsIdx];
+    review(item.id, true);
+    advanceCard();
+  });
+}
+function advanceCard(){
+  state.cardsIdx++;
+  state.cardFlipped=false;
+  render();
+}
+
+/* ---------- MEMORY ---------- */
+function setupMemory(catKey){
+  const ci = CATS.findIndex(c=>c.key===catKey);
+  const cat = CATS[ci];
+  const indices = cat.words.map((_,i)=>i).sort(()=>Math.random()-0.5).slice(0,6);
+  let cells = [];
+  indices.forEach(wi=>{
+    const [es,en] = cat.words[wi];
+    const pairId = ci+'_'+wi;
+    cells.push({pairId, text:es, side:'es', ci, wi});
+    cells.push({pairId, text:en, side:'en', ci, wi});
+  });
+  cells.sort(()=>Math.random()-0.5);
+  state.memCells = cells.map(c=>({...c, flipped:false, matched:false}));
+  state.memFlippedIdx = [];
+  state.memLock=false;
+  state.memWon=false;
+}
+function memoryHTML(){
+  if(!state.memCells || state.memCells.length===0) setupMemory(state.memCat);
+  let body = '';
+  if(state.memWon){
+    body = `<div class="win-banner"><div class="flourish" style="font-size:26px;margin-bottom:-4px;">¡Olé!</div><div class="big">¡COMPLETO!</div><p>Encontraste las ${state.memCells.length/2} parejas.
+      <span class="en-block">You found all ${state.memCells.length/2} pairs.</span></p>
+      <button class="big-btn" id="memAgain"><span class="es">Jugar otra vez</span><span class="en">Play again</span></button></div>`;
+  } else {
+    body = `<div class="grid">` + state.memCells.map((c,i)=>`
+      <div class="cell ${c.flipped?'flipped':''} ${c.matched?'matched':''}" data-idx="${i}">
+        ${c.flipped||c.matched ? c.text : '<span class="qmark">?</span>'}
+      </div>`).join('') + `</div>`;
+  }
+  return chipsHTML(state.memCat,'memcat') + body;
+}
+function bindMemory(){
+  document.querySelectorAll('[data-memcat]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const idx = parseInt(el.dataset.idx);
+      if(!isCatUnlocked(idx)) return;
+      state.memCat = el.dataset.memcat;
+      setupMemory(state.memCat);
+      renderPanel();
+    });
+  });
+  const again = document.getElementById('memAgain');
+  if(again) again.addEventListener('click', ()=>{ setupMemory(state.memCat); renderPanel(); });
+
+  document.querySelectorAll('.cell').forEach(cell=>{
+    cell.addEventListener('click', ()=>{
+      if(state.memLock) return;
+      const idx = parseInt(cell.dataset.idx);
+      const c = state.memCells[idx];
+      if(c.flipped || c.matched) return;
+      c.flipped = true;
+      state.memFlippedIdx.push(idx);
+      renderPanel();
+      if(state.memFlippedIdx.length===2){
+        state.memLock = true;
+        const [a,b] = state.memFlippedIdx;
+        const ca = state.memCells[a], cb = state.memCells[b];
+        if(ca.pairId === cb.pairId){
+          setTimeout(()=>{
+            ca.matched=true; cb.matched=true;
+            review(ca.pairId, true);
+            state.memFlippedIdx=[];
+            state.memLock=false;
+            if(state.memCells.every(c=>c.matched)) state.memWon=true;
+            renderPanel();
+          }, 450);
+        } else {
+          setTimeout(()=>{
+            ca.flipped=false; cb.flipped=false;
+            state.memFlippedIdx=[];
+            state.memLock=false;
+            renderPanel();
+          }, 750);
+        }
+      }
+    });
+  });
+}
+
+/* ---------- LISTENING SPRINT ---------- */
+function pickVoice(){
+  const voices = window.speechSynthesis.getVoices();
+  return voices.find(v=>v.lang==='es-ES') || voices.find(v=>v.lang && v.lang.startsWith('es')) || null;
+}
+function speak(text){
+  try{
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='es-ES'; u.rate=0.92;
+    const v = pickVoice(); if(v) u.voice=v;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function sprintPool(){
+  let pool=[];
+  CATS.forEach((cat,ci)=>{
+    if(!isCatUnlocked(ci)) return;
+    if(state.sprintCat!=='mix' && cat.key!==state.sprintCat) return;
+    cat.words.forEach((w,wi)=> pool.push({ci,wi,es:w[0],en:w[1]}));
+  });
+  return pool;
+}
+function newQuestion(){
+  const pool = sprintPool();
+  if(pool.length<4){ state.sprintQ=null; return; }
+  const correct = pool[Math.floor(Math.random()*pool.length)];
+  let distractors = pool.filter(p=>p.en!==correct.en).sort(()=>Math.random()-0.5).slice(0,3);
+  let options = [correct, ...distractors].sort(()=>Math.random()-0.5);
+  state.sprintQ = {correct, options, answered:false};
+  state.sprintFeedback=null;
+  speak(correct.es);
+  startTimer();
+}
+function startTimer(){
+  clearInterval(state.sprintTimer);
+  const duration = Math.max(3000, 6500 - state.sprintStreak*150);
+  const startedAt = Date.now();
+  const fill = ()=>document.getElementById('timerFill');
+  state.sprintTimer = setInterval(()=>{
+    const elapsed = Date.now()-startedAt;
+    const pct = Math.max(0, 100 - (elapsed/duration)*100);
+    const f = fill();
+    if(f) f.style.width = pct+'%';
+    if(elapsed >= duration){
+      clearInterval(state.sprintTimer);
+      if(state.sprintQ && !state.sprintQ.answered) answerSprint(null);
+    }
+  }, 80);
+}
+function answerSprint(chosenEn){
+  if(!state.sprintQ || state.sprintQ.answered) return;
+  state.sprintQ.answered = true;
+  clearInterval(state.sprintTimer);
+  const correct = chosenEn === state.sprintQ.correct.en;
+  review(wordId(state.sprintQ.correct.ci, state.sprintQ.correct.wi), correct);
+  if(correct){
+    state.sprintScore++; state.sprintStreak++;
+    if(state.sprintScore > state.stats.sprintBest) state.stats.sprintBest = state.sprintScore;
+  } else {
+    state.sprintStreak = 0;
+  }
+  state.stats.sprintScore = state.sprintScore;
+  persist();
+  renderPanel();
+  setTimeout(()=>{
+    if(state.sprintRunning) newQuestion();
+    renderPanel();
+  }, 900);
+}
+function listenHTML(){
+  let body='';
+  if(!state.sprintRunning){
+    body = `<div class="start-row">
+      <p style="opacity:.7;font-size:13px;margin-bottom:18px;">Escucha la palabra y elige el significado antes de que se acabe el tiempo.
+      <span class="en-block">Listen to the word and pick its meaning before time runs out.</span></p>
+      <button class="big-btn" id="sprintStart"><span class="es">Empezar</span><span class="en">Start</span></button>
+    </div>`;
+  } else if(!state.sprintQ){
+    body = `<div class="empty-state"><div class="big">🔓</div><p>Desbloquea más categorías para tener suficientes opciones aquí.
+      <span class="en-block">Unlock more categories to have enough options here.</span></p></div>`;
+  } else {
+    const q = state.sprintQ;
+    body = `
+      <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+      <div class="word-prompt">
+        <button class="speaker" id="replayBtn">🔊</button>
+        <div class="es">Escucha y elige el significado <span class="en-inline">/ Listen and pick the meaning</span></div>
+      </div>
+      <div class="options">
+        ${q.options.map(o=>{
+          let cls='opt';
+          if(q.answered){
+            if(o.en===q.correct.en) cls+=' correct';
+            else cls+=' wrong';
+          }
+          return `<div class="${cls}" data-en="${o.en.replace(/"/g,'&quot;')}">${o.en}</div>`;
+        }).join('')}
+      </div>
+    `;
+  }
+  return chipsHTML2() + `
+    <div class="score-row">
+      <div class="score-box"><div class="num">${state.sprintScore}</div><div class="lbl">Puntos <span class="en-inline">Points</span></div></div>
+      <div class="score-box"><div class="num">${state.sprintStreak}</div><div class="lbl">Racha <span class="en-inline">Streak</span></div></div>
+      <div class="score-box"><div class="num">${state.stats.sprintBest||0}</div><div class="lbl">Mejor <span class="en-inline">Best</span></div></div>
+    </div>
+    ${body}
+  `;
+}
+function chipsHTML2(){
+  const opts = [{key:'mix', label:'Mezcla', labelEn:'Mix'}, ...CATS.map(c=>({key:c.key,label:c.label,labelEn:c.labelEn}))];
+  return `<div class="chips">` + opts.map((c)=>{
+    let unlocked = true, idx=-1;
+    if(c.key!=='mix'){ idx = CATS.findIndex(x=>x.key===c.key); unlocked = isCatUnlocked(idx); }
+    const active = state.sprintCat===c.key;
+    const lock = unlocked ? '' : '🔒 ';
+    return `<div class="chip ${active?'active':''} ${!unlocked?'locked':''}" data-sprintcat="${c.key}" data-idx="${idx}">
+      <span class="chip-es">${lock}${c.label}</span><span class="chip-en">${c.labelEn}</span></div>`;
+  }).join('') + `</div>`;
+}
+function bindListen(){
+  document.querySelectorAll('[data-sprintcat]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const idx = parseInt(el.dataset.idx);
+      if(idx>=0 && !isCatUnlocked(idx)) return;
+      state.sprintCat = el.dataset.sprintcat;
+      if(state.sprintRunning){ clearInterval(state.sprintTimer); newQuestion(); }
+      renderPanel();
+    });
+  });
+  const startBtn = document.getElementById('sprintStart');
+  if(startBtn) startBtn.addEventListener('click', ()=>{
+    state.sprintRunning=true; state.sprintScore=0; state.sprintStreak=0;
+    newQuestion(); renderPanel();
+  });
+  const replay = document.getElementById('replayBtn');
+  if(replay) replay.addEventListener('click', ()=>{ if(state.sprintQ) speak(state.sprintQ.correct.es); });
+  document.querySelectorAll('.opt').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      if(state.sprintQ && state.sprintQ.answered) return;
+      answerSprint(el.dataset.en);
+    });
+  });
+}
+
+/* ---------- DRAG SWIPE FOR FLASHCARDS ---------- */
+document.addEventListener('pointerdown', (e)=>{
+  const card = e.target.closest('#flipCard');
+  if(!card || !state.cardFlipped) return;
+  let startX = e.clientX;
+  let dragging = true;
+  const onMove = (ev)=>{
+    if(!dragging) return;
+    const dx = ev.clientX-startX;
+    card.style.transform = `translateX(${dx}px) rotate(${dx/20}deg)`;
+  };
+  const onUp = (ev)=>{
+    dragging=false;
+    const dx = ev.clientX-startX;
+    card.style.transform='';
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    if(Math.abs(dx) > 80){
+      const item = state.cardsQueue[state.cardsIdx];
+      review(item.id, dx>0);
+      advanceCard();
+    }
+  };
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', onUp);
+});
+
+/* ---------- INIT ---------- */
+if(window.speechSynthesis) window.speechSynthesis.onvoiceschanged = ()=>{};
+loadAll().then(render);
+</script>
+</body>
+</html>
