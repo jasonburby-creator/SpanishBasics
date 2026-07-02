@@ -371,7 +371,7 @@
   .card-face::after{
     content:'';
     position:absolute;
-    top:8px;right:8px;
+    bottom:10px;right:10px;
     width:10px;height:10px;
     border-radius:50%;
     background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.9), var(--gold) 65%);
@@ -381,6 +381,15 @@
   .card-face .cat-label{
     position:absolute;top:18px;left:18px;
     font-size:10px;text-transform:uppercase;letter-spacing:1.2px;opacity:0.5;
+  }
+  .dir-badge{
+    position:absolute;top:16px;right:18px;
+    font-size:9px;font-weight:700;letter-spacing:0.5px;
+    padding:3px 8px;
+    border:1.5px solid var(--ink);
+    border-radius:999px;
+    opacity:0.55;
+    background:var(--paper2);
   }
   .card-front .word{
     font-family:'Bebas Neue', sans-serif;
@@ -823,13 +832,14 @@ function chipsHTML(activeCat, onAttr){
 }
 
 /* ---------- FLASHCARDS ---------- */
+function randomDir(){ return Math.random()<0.5 ? 'es2en' : 'en2es'; }
 function buildQueue(){
   let pool = [];
   CATS.forEach((cat,ci)=>{
     if(!isCatUnlocked(ci)) return;
     cat.words.forEach((w,wi)=>{
       const id = wordId(ci,wi);
-      if(isDue(id)) pool.push({id, ci, wi});
+      if(isDue(id)) pool.push({id, ci, wi, dir: randomDir()});
     });
   });
   pool.sort(()=>Math.random()-0.5);
@@ -866,7 +876,14 @@ function cardsHTML(){
   const item = state.cardsQueue[state.cardsIdx];
   const cat = CATS[item.ci];
   const [es,en] = cat.words[item.wi];
+  const dir = item.dir || 'es2en';
+  const prompt = dir==='es2en' ? es : en;
+  const answer = dir==='es2en' ? en : es;
   const revealed = state.cardRevealed;
+  const dirLabel = dir==='es2en' ? 'ES → EN' : 'EN → ES';
+  const hint = dir==='es2en'
+    ? 'Toca para ver el significado <span class="en-inline">/ Tap to reveal the English</span>'
+    : 'Toca para ver la palabra en español <span class="en-inline">/ Tap to reveal the Spanish</span>';
   return `
     <div class="session-info"><span>Tarjeta ${state.cardsIdx+1} / ${state.cardsQueue.length}</span><span>${cat.label} <span class="en-inline">${cat.labelEn}</span></span></div>
     <div class="progress-track"><div class="progress-fill" style="width:${(state.cardsIdx/state.cardsQueue.length)*100}%"></div></div>
@@ -875,10 +892,11 @@ function cardsHTML(){
         <div class="card-face card-front">
           <div class="bar" style="background-color:var(--${cat.color})"></div>
           <div class="cat-label">${cat.label} <span class="en-inline">${cat.labelEn}</span></div>
-          <div class="word">${es}</div>
+          <div class="dir-badge">${dirLabel}</div>
+          <div class="word">${prompt}</div>
           ${revealed
-            ? `<div class="front-en">${en}</div>`
-            : `<div class="tap-hint">Toca para ver el significado <span class="en-inline">/ Tap to reveal meaning</span></div>`
+            ? `<div class="front-en">${answer}</div>`
+            : `<div class="tap-hint">${hint}</div>`
           }
         </div>
       </div>
@@ -901,7 +919,7 @@ function bindCards(){
   const practiceAnyway = document.getElementById('practiceAnyway');
   if(practiceAnyway) practiceAnyway.addEventListener('click', ()=>{
     let pool=[];
-    CATS.forEach((cat,ci)=>{ if(isCatUnlocked(ci)) cat.words.forEach((w,wi)=>pool.push({id:wordId(ci,wi),ci,wi})); });
+    CATS.forEach((cat,ci)=>{ if(isCatUnlocked(ci)) cat.words.forEach((w,wi)=>pool.push({id:wordId(ci,wi),ci,wi,dir:randomDir()})); });
     pool.sort(()=>Math.random()-0.5);
     state.cardsQueue = pool.slice(0,15);
     state.cardsIdx=0; state.cardRevealed=false;
