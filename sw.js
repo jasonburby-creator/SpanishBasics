@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ruta-de-palabras-v1';
+const CACHE_NAME = 'ruta-de-palabras-v2';
 const PRECACHE_URLS = [
   './',
   './index.html',

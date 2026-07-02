@@ -34,6 +34,12 @@
     --shadow:rgba(36,26,18,0.25);
   }
   *{box-sizing:border-box;}
+  button{
+    -webkit-appearance:none;
+    appearance:none;
+    font-family:inherit;
+    color:inherit;
+  }
   html,body{margin:0;padding:0;}
   body{
     background-color:var(--paper);
@@ -53,6 +59,10 @@
     max-width:480px;
     min-height:100vh;
     padding:18px 16px 40px;
+    padding-top:max(18px, calc(env(safe-area-inset-top) + 10px));
+    padding-left:max(16px, env(safe-area-inset-left));
+    padding-right:max(16px, env(safe-area-inset-right));
+    padding-bottom:max(40px, env(safe-area-inset-bottom));
     position:relative;
   }
   .bunting-string{
@@ -246,6 +256,10 @@
     min-height:100dvh;
     max-height:100dvh;
     padding:10px 14px 14px;
+    padding-top:max(10px, calc(env(safe-area-inset-top) + 8px));
+    padding-left:max(14px, env(safe-area-inset-left));
+    padding-right:max(14px, env(safe-area-inset-right));
+    padding-bottom:max(14px, env(safe-area-inset-bottom));
   }
   .game-topbar{
     display:flex;
@@ -861,13 +875,18 @@ function renderPanel(){
 /* ---------- FLASHCARDS ---------- */
 function randomDir(){ return Math.random()<0.5 ? 'es2en' : 'en2es'; }
 function buildQueue(){
-  let pool = [];
+  let duePool = [];
+  let fullPool = [];
   CATS.forEach((cat,ci)=>{
     if(!isCatUnlocked(ci)) return;
     cat.words.forEach((w,wi)=>{
-      pool.push({id:wordId(ci,wi), ci, wi, dir: randomDir()});
+      const id = wordId(ci,wi);
+      const item = {id, ci, wi, dir: randomDir()};
+      fullPool.push(item);
+      if(isDue(id)) duePool.push(item);
     });
   });
+  const pool = duePool.length > 0 ? duePool : fullPool;
   pool.sort(()=>Math.random()-0.5);
   return pool;
 }
