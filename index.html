@@ -193,50 +193,102 @@
   .stop.lit .stop-dot{background:var(--oliva);border-color:var(--oliva);}
 
   /* Tabs */
-  .tabs{
+  .home-menu{
     display:flex;
-    gap:8px;
-    margin-bottom:16px;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:18px;
   }
-  .tab{
+  .home-tile{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:14px 16px;
+    border:2px solid var(--ink);
+    border-radius:12px;
+    background:var(--paper);
+    cursor:pointer;
+    box-shadow:4px 4px 0 var(--shadow);
+    transition:transform 0.1s ease;
+  }
+  .home-tile:nth-child(1){transform:rotate(-0.6deg);}
+  .home-tile:nth-child(2){transform:rotate(0.5deg);}
+  .home-tile:nth-child(3){transform:rotate(-0.4deg);}
+  .home-tile-icon{font-size:26px;}
+  .home-tile-text{
     flex:1;
-    padding:9px 4px 8px;
-    text-align:center;
+    display:flex;
+    flex-direction:column;
+    line-height:1.2;
+  }
+  .home-tile-text .es{font-family:'Bebas Neue';font-size:19px;letter-spacing:0.6px;}
+  .home-tile-text .en{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;opacity:0.55;font-weight:600;}
+  .home-tile-arrow{font-size:22px;opacity:0.4;}
+
+  /* Compact in-game layout */
+  #app.compact{
+    display:flex;
+    flex-direction:column;
+    height:100dvh;
+    min-height:100dvh;
+    max-height:100dvh;
+    padding:10px 14px 14px;
+  }
+  .game-topbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding-bottom:10px;
+    border-bottom:1.5px dashed var(--line);
+    margin-bottom:12px;
+    flex:0 0 auto;
+  }
+  .back-btn{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    line-height:1.1;
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:2px 4px;
+  }
+  .back-btn .es{font-family:'Bebas Neue';font-size:15px;letter-spacing:0.5px;}
+  .back-btn .en{font-size:8px;text-transform:uppercase;opacity:0.5;letter-spacing:0.6px;}
+  .mini-pct{
+    font-size:11px;
+    font-weight:700;
+    color:var(--oliva);
+    background:var(--paper2);
+    padding:4px 8px;
+    border-radius:999px;
+  }
+  .mini-tabs{
+    display:flex;
+    gap:6px;
+    margin-left:auto;
+  }
+  .mini-tab{
+    width:34px;height:34px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;
     border:2px solid var(--ink);
     border-radius:8px;
     background:var(--paper);
     cursor:pointer;
-    user-select:none;
-    transition:transform 0.12s ease;
+    opacity:0.5;
+  }
+  .mini-tab.active{
+    background:var(--ink);
+    opacity:1;
+  }
+  .panel-fill{
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto;
     display:flex;
     flex-direction:column;
-    align-items:center;
-    line-height:1.15;
   }
-  .tab .es{
-    font-family:'Bebas Neue', sans-serif;
-    font-size:16px;
-    letter-spacing:0.8px;
-  }
-  .tab .en{
-    font-size:9px;
-    text-transform:uppercase;
-    letter-spacing:0.8px;
-    opacity:0.55;
-    font-weight:600;
-  }
-  .tab.active .en{opacity:0.75;}
-  .tab:nth-child(1){transform:rotate(-1.2deg);}
-  .tab:nth-child(2){transform:rotate(0.8deg);}
-  .tab:nth-child(3){transform:rotate(-0.6deg);}
-  .tab.active{
-    background:var(--ink);
-    color:var(--paper);
-    transform:rotate(0deg) scale(1.03);
-  }
-
-  .panel{display:none;}
-  .panel.active{display:block;}
 
   /* Category chips */
   .chips{
@@ -543,7 +595,7 @@ const ROUTE_STOPS = [
 let state = {
   progress: {},   // wordId -> {box, last}
   stats: { sprintBest:0, sprintScore:0 },
-  tab: 'cards',
+  tab: 'home',
   cardsCat: null,
   cardsQueue: [],
   cardsIdx: 0,
@@ -625,34 +677,63 @@ function overallMastery(){
 }
 
 /* ---------- RENDER SHELL ---------- */
+const GAMES = [
+  {key:'cards', icon:'🃏', es:'Tarjetas', en:'Flashcards'},
+  {key:'memory', icon:'🧩', es:'Memoria', en:'Memory'},
+  {key:'listen', icon:'🎧', es:'Escucha', en:'Listen'}
+];
+
 function render(){
   const pct = overallMastery();
   const app = document.getElementById('app');
-  app.innerHTML = `
-    ${buntingHTML()}
-    <div class="topbar">
-      <div class="title">${fanIconSVG()} RUTA DE <span>PALABRAS</span></div>
-    </div>
-    <div class="subtitle">Tu español para viajar por España<span class="sub-en">Your Spanish for traveling around Spain</span></div>
-    ${journeyHTML(pct)}
-    <div class="tabs">
-      <div class="tab ${state.tab==='cards'?'active':''}" data-tab="cards"><span class="es">Tarjetas</span><span class="en">Flashcards</span></div>
-      <div class="tab ${state.tab==='memory'?'active':''}" data-tab="memory"><span class="es">Memoria</span><span class="en">Memory</span></div>
-      <div class="tab ${state.tab==='listen'?'active':''}" data-tab="listen"><span class="es">Escucha</span><span class="en">Listen</span></div>
-    </div>
-    <div id="panel"></div>
-    <div class="reset-row"><button id="resetBtn">Reiniciar progreso <span class="en-inline">/ Reset progress</span></button></div>
-  `;
-  document.querySelectorAll('.tab').forEach(t=>{
-    t.addEventListener('click', ()=>{ state.tab=t.dataset.tab; render(); });
-  });
-  document.getElementById('resetBtn').addEventListener('click', async ()=>{
-    if(confirm('¿Borrar todo tu progreso? Esto no se puede deshacer.')){
-      state.progress={}; state.stats={sprintBest:0,sprintScore:0};
-      persist();
-      render();
-    }
-  });
+  const isHome = state.tab === 'home';
+
+  if(isHome){
+    app.className = '';
+    app.innerHTML = `
+      ${buntingHTML()}
+      <div class="topbar">
+        <div class="title">${fanIconSVG()} RUTA DE <span>PALABRAS</span></div>
+      </div>
+      <div class="subtitle">Tu español para viajar por España<span class="sub-en">Your Spanish for traveling around Spain</span></div>
+      ${journeyHTML(pct)}
+      <div class="home-menu">
+        ${GAMES.map(g=>`
+          <div class="home-tile" data-gohome="${g.key}">
+            <div class="home-tile-icon">${g.icon}</div>
+            <div class="home-tile-text"><span class="es">${g.es}</span><span class="en">${g.en}</span></div>
+            <div class="home-tile-arrow">›</div>
+          </div>`).join('')}
+      </div>
+      <div class="reset-row"><button id="resetBtn">Reiniciar progreso <span class="en-inline">/ Reset progress</span></button></div>
+    `;
+    document.querySelectorAll('[data-gohome]').forEach(t=>{
+      t.addEventListener('click', ()=>{ state.tab=t.dataset.gohome; render(); });
+    });
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+      if(confirm('¿Borrar todo tu progreso? Esto no se puede deshacer.')){
+        state.progress={}; state.stats={sprintBest:0,sprintScore:0};
+        persist();
+        render();
+      }
+    });
+  } else {
+    app.className = 'compact';
+    app.innerHTML = `
+      <div class="game-topbar">
+        <button class="back-btn" id="backHome">‹ <span class="es">Inicio</span><span class="en">Home</span></button>
+        <div class="mini-pct">${pct}%</div>
+        <div class="mini-tabs">
+          ${GAMES.map(g=>`<div class="mini-tab ${state.tab===g.key?'active':''}" data-tab="${g.key}">${g.icon}</div>`).join('')}
+        </div>
+      </div>
+      <div id="panel" class="panel-fill"></div>
+    `;
+    document.getElementById('backHome').addEventListener('click', ()=>{ state.tab='home'; render(); });
+    document.querySelectorAll('.mini-tab').forEach(t=>{
+      t.addEventListener('click', ()=>{ state.tab=t.dataset.tab; render(); });
+    });
+  }
   renderPanel();
 }
 
@@ -718,9 +799,10 @@ function buntingHTML(){
 
 function renderPanel(){
   const panel = document.getElementById('panel');
+  if(!panel) return;
   if(state.tab==='cards'){ panel.innerHTML = cardsHTML(); bindCards(); }
   else if(state.tab==='memory'){ panel.innerHTML = memoryHTML(); bindMemory(); }
-  else { panel.innerHTML = listenHTML(); bindListen(); }
+  else if(state.tab==='listen'){ panel.innerHTML = listenHTML(); bindListen(); }
 }
 
 function chipsHTML(activeCat, onAttr){
