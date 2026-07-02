@@ -394,6 +394,12 @@
     font-style:italic;
     margin-top:6px;
   }
+  .tap-hint{
+    font-size:11px;
+    opacity:0.4;
+    margin-top:14px;
+  }
+  #flipCard{cursor:pointer;}
   .actions{display:flex;gap:12px;}
   .btn{
     flex:1;
@@ -599,6 +605,7 @@ let state = {
   cardsCat: null,
   cardsQueue: [],
   cardsIdx: 0,
+  cardRevealed: false,
   memCat: CATS[0].key,
   memCells: [],
   memFlippedIdx: [],
@@ -859,16 +866,20 @@ function cardsHTML(){
   const item = state.cardsQueue[state.cardsIdx];
   const cat = CATS[item.ci];
   const [es,en] = cat.words[item.wi];
+  const revealed = state.cardRevealed;
   return `
     <div class="session-info"><span>Tarjeta ${state.cardsIdx+1} / ${state.cardsQueue.length}</span><span>${cat.label} <span class="en-inline">${cat.labelEn}</span></span></div>
     <div class="progress-track"><div class="progress-fill" style="width:${(state.cardsIdx/state.cardsQueue.length)*100}%"></div></div>
     <div class="card-stage">
-      <div class="card">
+      <div class="card" id="flipCard">
         <div class="card-face card-front">
           <div class="bar" style="background-color:var(--${cat.color})"></div>
           <div class="cat-label">${cat.label} <span class="en-inline">${cat.labelEn}</span></div>
           <div class="word">${es}</div>
-          <div class="front-en">${en}</div>
+          ${revealed
+            ? `<div class="front-en">${en}</div>`
+            : `<div class="tap-hint">Toca para ver el significado <span class="en-inline">/ Tap to reveal meaning</span></div>`
+          }
         </div>
       </div>
     </div>
@@ -883,6 +894,7 @@ function bindCards(){
   if(startBtn) startBtn.addEventListener('click', ()=>{
     state.cardsQueue = buildQueue();
     state.cardsIdx = 0;
+    state.cardRevealed = false;
     state.cardsStarted = true;
     renderPanel();
   });
@@ -892,12 +904,17 @@ function bindCards(){
     CATS.forEach((cat,ci)=>{ if(isCatUnlocked(ci)) cat.words.forEach((w,wi)=>pool.push({id:wordId(ci,wi),ci,wi})); });
     pool.sort(()=>Math.random()-0.5);
     state.cardsQueue = pool.slice(0,15);
-    state.cardsIdx=0;
+    state.cardsIdx=0; state.cardRevealed=false;
     renderPanel();
   });
   const newSession = document.getElementById('newSession');
   if(newSession) newSession.addEventListener('click', ()=>{
-    state.cardsQueue = buildQueue(); state.cardsIdx=0;
+    state.cardsQueue = buildQueue(); state.cardsIdx=0; state.cardRevealed=false;
+    renderPanel();
+  });
+  const flipCard = document.getElementById('flipCard');
+  if(flipCard) flipCard.addEventListener('click', ()=>{
+    state.cardRevealed = !state.cardRevealed;
     renderPanel();
   });
   const again = document.getElementById('btnAgain');
@@ -917,6 +934,7 @@ function bindCards(){
 }
 function advanceCard(){
   state.cardsIdx++;
+  state.cardRevealed = false;
   render();
 }
 
