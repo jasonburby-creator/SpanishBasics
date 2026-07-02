@@ -334,6 +334,30 @@
     margin-bottom:18px;
   }
   .progress-fill{height:100%;background:var(--gold);}
+  .nav-row{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .nav-btn{
+    background:none;
+    border:none;
+    font-size:15px;
+    opacity:0.6;
+    cursor:pointer;
+    padding:4px 2px;
+    display:flex;
+    align-items:center;
+    gap:5px;
+  }
+  .nav-text{
+    display:flex;
+    flex-direction:column;
+    line-height:1.1;
+    text-align:left;
+  }
+  .nav-text .es{font-size:12px;font-weight:700;}
+  .nav-text .en{font-size:9px;opacity:0.65;font-weight:500;}
   .card-stage{
     height:240px;
     display:flex;
@@ -838,30 +862,20 @@ function buildQueue(){
   CATS.forEach((cat,ci)=>{
     if(!isCatUnlocked(ci)) return;
     cat.words.forEach((w,wi)=>{
-      const id = wordId(ci,wi);
-      if(isDue(id)) pool.push({id, ci, wi, dir: randomDir()});
+      pool.push({id:wordId(ci,wi), ci, wi, dir: randomDir()});
     });
   });
   pool.sort(()=>Math.random()-0.5);
-  return pool.slice(0,15);
+  return pool;
 }
 function cardsHTML(){
   if(!state.cardsQueue || state.cardsStarted!==true){
     return `
       <div class="empty-state">
         <div class="big">🃏</div>
-        <p>Repasa las palabras que te tocan hoy — empezamos por lo básico y vamos sumando categorías a medida que avances.
-        <span class="en-block">Review today's words — we start with the basics and add categories as you go.</span></p>
+        <p>Repasa las palabras a tu ritmo — avanza o retrocede cuando quieras.
+        <span class="en-block">Review at your own pace — move forward or back whenever you like.</span></p>
         <button class="big-btn" id="startSession"><span class="es">Empezar repaso</span><span class="en">Start review</span></button>
-      </div>`;
-  }
-  if(state.cardsQueue.length===0){
-    return `
-      <div class="empty-state">
-        <div class="big">☀️</div>
-        <p>¡Ya repasaste todo lo que tocaba por hoy! Vuelve mañana, o practica igual si quieres.
-        <span class="en-block">You've reviewed everything due today! Come back tomorrow, or practice anyway.</span></p>
-        <button class="link-btn" id="practiceAnyway">Practicar de todos modos <span class="en-inline">/ Practice anyway</span></button>
       </div>`;
   }
   if(state.cardsIdx >= state.cardsQueue.length){
@@ -885,8 +899,15 @@ function cardsHTML(){
     ? 'Toca para ver el significado <span class="en-inline">/ Tap to reveal the English</span>'
     : 'Toca para ver la palabra en español <span class="en-inline">/ Tap to reveal the Spanish</span>';
   return `
-    <div class="session-info"><span>Tarjeta ${state.cardsIdx+1} / ${state.cardsQueue.length}</span><span>${cat.label} <span class="en-inline">${cat.labelEn}</span></span></div>
+    <div class="session-info">
+      <span>Tarjeta ${state.cardsIdx+1} / ${state.cardsQueue.length}</span>
+      <span>${cat.label} <span class="en-inline">${cat.labelEn}</span></span>
+    </div>
     <div class="progress-track"><div class="progress-fill" style="width:${(state.cardsIdx/state.cardsQueue.length)*100}%"></div></div>
+    <div class="nav-row">
+      <button class="nav-btn" id="prevCard" ${state.cardsIdx===0?'disabled style="opacity:.3"':''}>‹ <span class="nav-text"><span class="es">Anterior</span><span class="en">Previous</span></span></button>
+      <button class="nav-btn" id="nextCard"><span class="nav-text"><span class="es">Saltar</span><span class="en">Skip</span></span> ›</button>
+    </div>
     <div class="card-stage">
       <div class="card" id="flipCard">
         <div class="card-face card-front">
@@ -916,19 +937,18 @@ function bindCards(){
     state.cardsStarted = true;
     renderPanel();
   });
-  const practiceAnyway = document.getElementById('practiceAnyway');
-  if(practiceAnyway) practiceAnyway.addEventListener('click', ()=>{
-    let pool=[];
-    CATS.forEach((cat,ci)=>{ if(isCatUnlocked(ci)) cat.words.forEach((w,wi)=>pool.push({id:wordId(ci,wi),ci,wi,dir:randomDir()})); });
-    pool.sort(()=>Math.random()-0.5);
-    state.cardsQueue = pool.slice(0,15);
-    state.cardsIdx=0; state.cardRevealed=false;
-    renderPanel();
-  });
   const newSession = document.getElementById('newSession');
   if(newSession) newSession.addEventListener('click', ()=>{
     state.cardsQueue = buildQueue(); state.cardsIdx=0; state.cardRevealed=false;
     renderPanel();
+  });
+  const prevBtn = document.getElementById('prevCard');
+  if(prevBtn) prevBtn.addEventListener('click', ()=>{
+    if(state.cardsIdx>0){ state.cardsIdx--; state.cardRevealed=false; render(); }
+  });
+  const nextBtn = document.getElementById('nextCard');
+  if(nextBtn) nextBtn.addEventListener('click', ()=>{
+    state.cardsIdx++; state.cardRevealed=false; render();
   });
   const flipCard = document.getElementById('flipCard');
   if(flipCard) flipCard.addEventListener('click', ()=>{
