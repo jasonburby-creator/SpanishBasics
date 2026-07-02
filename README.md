@@ -1,28 +1,55 @@
 # Ruta de Palabras
 
-A bilingual Spanish travel vocabulary game — flashcards, a memory match, and a listening sprint, all sharing the same progress data. No build step, no dependencies — it's a single `index.html` file.
+A bilingual Spanish travel vocabulary game — flashcards, a memory match, and a listening sprint, all sharing the same progress data. It's also an installable app (PWA), so once it's been opened one time with internet, it keeps working with **no connection at all** — good for planes, the metro, or anywhere without signal.
+
+## Files in this folder
+
+- `index.html` — the app itself
+- `manifest.json` — tells iOS/Android how to install it as an app icon
+- `sw.js` — the "service worker" that caches everything for offline use
+- `favicon.ico` — the browser tab icon
+- `icons/` — the app icon in the sizes iOS, Android, and browser tabs expect
+- `README.md` — this file
+
+All of these need to go into the GitHub repo together, in the same folder structure — the app won't install as offline-capable (and icons won't show up right) without `manifest.json`, `sw.js`, `favicon.ico`, and the `icons` folder alongside `index.html`.
 
 ## Put it on GitHub (drag-and-drop, no command line)
 
-1. Go to [github.com/new](https://github.com/new) and create a new repository (e.g. `ruta-de-palabras`). Keep it public or private — either works with Vercel.
-2. Don't initialize it with a README — leave it empty.
-3. On the new repo's page, click **"uploading an existing file"** (or go to `Add file → Upload files`).
-4. Drag `index.html` and this `README.md` into the upload box.
-5. Scroll down and click **Commit changes**.
+This comes as a `.zip` — **unzip it on your computer first.** GitHub's uploader doesn't unpack zip files automatically; if you drag the `.zip` itself in, it'll just sit there as one unusable file.
 
-That's it — your repo now contains everything it needs.
+1. Unzip `ruta-de-palabras.zip` (double-click it on Mac/iPhone Files app, or right-click → Extract on Windows). You should end up with a folder containing `index.html`, `manifest.json`, `sw.js`, `favicon.ico`, `README.md`, and an `icons` folder.
+2. Go to your existing `ruta-de-palabras` repo (or [github.com/new](https://github.com/new) if starting fresh).
+3. Click **Add file → Upload files**.
+4. Drag in everything from the unzipped folder **except the zip itself** — all the individual files plus the whole `icons` folder (GitHub's uploader accepts folders and preserves the `icons/` path automatically).
+5. Commit changes.
 
 ## Deploy it on Vercel
 
-1. Go to [vercel.com/new](https://vercel.com/new).
-2. Under "Import Git Repository," find and select `ruta-de-palabras` (connect your GitHub account first if you haven't already).
-3. Vercel will detect it as a static site automatically — no framework, no build command, no environment variables needed. Just click **Deploy**.
-4. In about 30 seconds you'll get a live URL like `ruta-de-palabras.vercel.app`. Bookmark that on your phone — it behaves like a lightweight app.
+Same as before — import the repo at [vercel.com/new](https://vercel.com/new), no config needed, click Deploy.
+
+## Set it up for offline use on your iPhone (do this once, with internet)
+
+1. Open your `ruta-de-palabras.vercel.app` link in **Safari** (must be Safari, not Chrome — "Add to Home Screen" with offline support only works reliably in Safari on iOS).
+2. Let the page fully load. Tap through all three modes once (Tarjetas, Memoria, Escucha) — this makes sure everything needed gets cached, fonts included.
+3. Tap the **Share** button (square with an arrow) → **Add to Home Screen** → **Add**.
+4. You'll now have a "Ruta de Palabras" icon on your home screen, with the fan logo.
+
+From now on, open the app from that **home screen icon**, not from Safari's address bar or bookmarks — the icon launches it as a standalone offline app; opening it through a browser tab doesn't get the same offline treatment on iOS.
+
+### On the plane
+
+Turn on airplane mode, tap the home screen icon — it should open normally, no blank page. Your progress still saves locally on your phone exactly like before.
+
+### If it doesn't work offline the first time
+
+- Make sure you opened it in Safari (not Chrome) when you set it up.
+- Make sure you were connected to the internet and let it fully load before switching to airplane mode.
+- If you update the app later (re-upload a new `index.html`), open it once with internet again so it re-caches the latest version — otherwise you'll keep seeing the old cached one offline, which is expected.
 
 ## Updating it later
 
-Whenever you want changes (new words, new categories, tweaks), just re-upload a new `index.html` to the same GitHub repo the same drag-and-drop way (`Add file → Upload files`, then commit). Vercel automatically redeploys within a minute or two — no extra steps on the Vercel side.
+Re-upload changed files to the GitHub repo the same drag-and-drop way, commit, and Vercel redeploys automatically. Remember to reopen the app once with internet afterward so your phone caches the new version.
 
 ## How progress is saved
 
-Your flashcard/memory/listening progress is saved in your phone's browser (`localStorage`), tied to that specific browser. It is **not** synced across devices and isn't sent anywhere — if you clear your browser data or switch phones, progress resets. There's also a "Reiniciar progreso" button in the app itself if you ever want a clean slate.
+Your flashcard/memory/listening progress is saved in your phone's browser storage, tied to that specific home-screen app icon. It is **not** synced across devices and isn't sent anywhere. There's a "Reiniciar progreso" button in the app itself if you ever want a clean slate.

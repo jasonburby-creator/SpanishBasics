@@ -3,9 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="google" content="notranslate">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="description" content="Ruta de Palabras — a bilingual Spanish travel vocabulary game with flashcards, a memory match, and a listening sprint.">
 <title>Ruta de Palabras — Spanish Travel Vocabulary</title>
+
+<!-- PWA / offline / iOS home-screen support -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#E3A93A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ruta de Palabras">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Caveat:wght@600;700&family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -644,7 +657,7 @@ let state = {
   memFlippedIdx: [],
   memLock: false,
   memWon: false,
-  sprintCat: 'mix',
+  sprintCat: CATS[0].key,
   sprintRunning: false,
   sprintQ: null,
   sprintScore: 0,
@@ -845,16 +858,6 @@ function renderPanel(){
   else if(state.tab==='listen'){ panel.innerHTML = listenHTML(); bindListen(); }
 }
 
-function chipsHTML(activeCat, onAttr){
-  return `<div class="chips">` + CATS.map((c,i)=>{
-    const unlocked = isCatUnlocked(i);
-    const active = activeCat===c.key;
-    const lock = unlocked ? '' : '🔒 ';
-    return `<div class="chip ${active?'active':''} ${!unlocked?'locked':''}" data-${onAttr}="${c.key}" data-idx="${i}">
-      <span class="chip-es">${lock}${c.label}</span><span class="chip-en">${c.labelEn}</span></div>`;
-  }).join('') + `</div>`;
-}
-
 /* ---------- FLASHCARDS ---------- */
 function randomDir(){ return Math.random()<0.5 ? 'es2en' : 'en2es'; }
 function buildQueue(){
@@ -978,12 +981,21 @@ function advanceCard(){
 
 /* ---------- MEMORY ---------- */
 function setupMemory(catKey){
-  const ci = CATS.findIndex(c=>c.key===catKey);
-  const cat = CATS[ci];
-  const indices = cat.words.map((_,i)=>i).sort(()=>Math.random()-0.5).slice(0,6);
+  let sourcePairs = [];
+  if(catKey==='mix'){
+    CATS.forEach((cat,ci)=>{
+      if(!isCatUnlocked(ci)) return;
+      cat.words.forEach((w,wi)=> sourcePairs.push({ci,wi}));
+    });
+  } else {
+    const ci = CATS.findIndex(c=>c.key===catKey);
+    CATS[ci].words.forEach((w,wi)=> sourcePairs.push({ci,wi}));
+  }
+  sourcePairs.sort(()=>Math.random()-0.5);
+  const chosen = sourcePairs.slice(0,6);
   let cells = [];
-  indices.forEach(wi=>{
-    const [es,en] = cat.words[wi];
+  chosen.forEach(({ci,wi})=>{
+    const [es,en] = CATS[ci].words[wi];
     const pairId = ci+'_'+wi;
     cells.push({pairId, text:es, side:'es', ci, wi});
     cells.push({pairId, text:en, side:'en', ci, wi});
@@ -993,6 +1005,26 @@ function setupMemory(catKey){
   state.memFlippedIdx = [];
   state.memLock=false;
   state.memWon=false;
+}
+function unlockedCatCount(){
+  return CATS.reduce((n,c,i)=> n + (isCatUnlocked(i)?1:0), 0);
+}
+function memoryChipsHTML(){
+  const showMix = unlockedCatCount() >= 2;
+  let chips = '';
+  if(showMix){
+    const active = state.memCat==='mix';
+    chips += `<div class="chip ${active?'active':''}" data-memcat="mix" data-idx="-1">
+      <span class="chip-es">🔀 Mezcla</span><span class="chip-en">Mix</span></div>`;
+  }
+  chips += CATS.map((c,i)=>{
+    const unlocked = isCatUnlocked(i);
+    const active = state.memCat===c.key;
+    const lock = unlocked ? '' : '🔒 ';
+    return `<div class="chip ${active?'active':''} ${!unlocked?'locked':''}" data-memcat="${c.key}" data-idx="${i}">
+      <span class="chip-es">${lock}${c.label}</span><span class="chip-en">${c.labelEn}</span></div>`;
+  }).join('');
+  return `<div class="chips">${chips}</div>`;
 }
 function memoryHTML(){
   if(!state.memCells || state.memCells.length===0) setupMemory(state.memCat);
@@ -1007,13 +1039,13 @@ function memoryHTML(){
         ${c.flipped||c.matched ? c.text : '<span class="qmark">?</span>'}
       </div>`).join('') + `</div>`;
   }
-  return chipsHTML(state.memCat,'memcat') + body;
+  return memoryChipsHTML() + body;
 }
 function bindMemory(){
   document.querySelectorAll('[data-memcat]').forEach(el=>{
     el.addEventListener('click', ()=>{
       const idx = parseInt(el.dataset.idx);
-      if(!isCatUnlocked(idx)) return;
+      if(idx>=0 && !isCatUnlocked(idx)) return;
       state.memCat = el.dataset.memcat;
       setupMemory(state.memCat);
       renderPanel();
@@ -1168,7 +1200,11 @@ function listenHTML(){
   `;
 }
 function chipsHTML2(){
-  const opts = [{key:'mix', label:'Mezcla', labelEn:'Mix'}, ...CATS.map(c=>({key:c.key,label:c.label,labelEn:c.labelEn}))];
+  const showMix = unlockedCatCount() >= 2;
+  const opts = [
+    ...(showMix ? [{key:'mix', label:'🔀 Mezcla', labelEn:'Mix'}] : []),
+    ...CATS.map(c=>({key:c.key,label:c.label,labelEn:c.labelEn}))
+  ];
   return `<div class="chips">` + opts.map((c)=>{
     let unlocked = true, idx=-1;
     if(c.key!=='mix'){ idx = CATS.findIndex(x=>x.key===c.key); unlocked = isCatUnlocked(idx); }
@@ -1233,6 +1269,12 @@ document.addEventListener('pointerdown', (e)=>{
 /* ---------- INIT ---------- */
 if(window.speechSynthesis) window.speechSynthesis.onvoiceschanged = ()=>{};
 loadAll().then(render);
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>
